@@ -16,7 +16,13 @@ import styled from "styled-components";
 import Header from "../components/Header";
 import { auth } from "../firebaseConfig";
 import { signOut } from "firebase/auth";
-import { useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+import { useCallback, useEffect, useState } from "react";
+import ProfileModal from "../components/ProfileModal";
+import BookingsModal from "../components/BookingsModal";
+
+
 
 /* ---------- styles ---------- */
 const Container = styled.div`
@@ -48,6 +54,9 @@ const UserAccount: React.FC = () => {
   const history = useHistory();
   const user = auth.currentUser;
  const [showLogoutAlert, setShowLogoutAlert] = useState(false);
+ const [profileOpen, setProfileOpen] = useState(false);
+const [bookingsOpen, setBookingsOpen] = useState(false);
+
 
 
   const handleLogout = async () => {
@@ -55,35 +64,51 @@ const UserAccount: React.FC = () => {
     history.replace("/splash");
   };
 
+
+
+const [profile, setProfile] = useState<any>(null);
+
+const loadProfile = useCallback(async () => {
+  if (!user) return;
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (snap.exists()) {
+    setProfile(snap.data());
+  }
+}, [user]);
+
+useEffect(() => {
+  loadProfile();
+}, [loadProfile]);
+
+
+
   return (
     <IonPage>
       <Header title="Account" />
       <IonContent fullscreen>
         <Container>
           {/* USER INFO */}
-          <UserCard>
-            <UserName>{user?.email?.split("@")[0] || "User"}</UserName>
-            <UserEmail>{user?.email}</UserEmail>
-          </UserCard>
+        <UserCard>
+  <UserName>{profile?.name || "User"}</UserName>
+  <UserEmail>{user?.email}</UserEmail>
+</UserCard>
+
 
           {/* MENU */}
           <IonList inset>
-            <IonItem button onClick={() => history.push("/profile")}>
-              <IonIcon icon={person} slot="start" />
-              <IonLabel>User Information</IonLabel>
-            </IonItem>
+          <IonItem button onClick={() => setProfileOpen(true)}>
+  <IonIcon icon={person} slot="start" />
+  <IonLabel>User Information</IonLabel>
+</IonItem>
 
-            <IonItem button onClick={() => history.push("/booking-history")}>
-              <IonIcon icon={list} slot="start" />
-              <IonLabel>Booking History</IonLabel>
-            </IonItem>
+<IonItem button onClick={() => setBookingsOpen(true)}>
+  <IonIcon icon={list} slot="start" />
+  <IonLabel>Booking History</IonLabel>
+</IonItem>
 
-            <IonItem button onClick={() => history.push("/transactions")}>
-              <IonIcon icon={card} slot="start" />
-              <IonLabel>Transaction History</IonLabel>
-            </IonItem>
 
-            <IonItem button onClick={() => history.push("/support")}>
+            <IonItem button onClick={() => history.push("/contact")}>
               <IonIcon icon={helpCircle} slot="start" />
               <IonLabel>Help & Support</IonLabel>
             </IonItem>
@@ -116,6 +141,18 @@ const UserAccount: React.FC = () => {
           },
         ]}
       />
+
+      <ProfileModal
+  isOpen={profileOpen}
+  onClose={() => setProfileOpen(false)}
+  onUpdated={loadProfile}
+/>
+
+<BookingsModal
+  isOpen={bookingsOpen}
+  onClose={() => setBookingsOpen(false)}
+/>
+
         </Container>
       </IonContent>
     </IonPage>

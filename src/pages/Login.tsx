@@ -6,12 +6,16 @@ import {
   IonButton,
   IonText,
   IonLoading,
+  IonItem,
 } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import Header from "../components/Header";
+import { useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+
 
 /* ---------- styles ---------- */
 const Container = styled.div`
@@ -55,6 +59,21 @@ const Login: React.FC = () => {
     }
   };
 
+
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // 🔐 User already logged in → go home
+      history.replace("/home");
+    }
+  });
+
+  return () => unsubscribe();
+}, [history]);
+
+
+
   return (
     <IonPage>
       <Header title="Login" />
@@ -62,19 +81,25 @@ const Login: React.FC = () => {
         <Container>
           <Title>Welcome back 👋</Title>
 
-          <IonInput
+<IonItem>
+     <IonInput
             type="email"
             placeholder="Email"
             value={email}
             onIonChange={(e) => setEmail(e.detail.value!)}
+            style={{padding:"10px"}}
           />
-
-          <IonInput
+</IonItem>
+         
+<IonItem>
+ <IonInput
             type="password"
             placeholder="Password"
             value={password}
             onIonChange={(e) => setPassword(e.detail.value!)}
           />
+</IonItem>
+         
 
           {error && <ErrorText>{error}</ErrorText>}
 

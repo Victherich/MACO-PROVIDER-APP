@@ -10,7 +10,7 @@ const StyledHeader = styled(IonHeader)`
 `;
 
 const StyledToolbar = styled(IonToolbar)`
-  --background: linear-gradient(180deg, #00c8ff 0%, #0073ff 100%);;
+  --background: linear-gradient(180deg, #00c8ff 0%, #0073ff 100%);
   color: #ffffff;
   --padding-top: 40px;
   --padding-bottom: 10px;

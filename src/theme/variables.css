@@ -38,11 +38,59 @@
    ================================================ */
 
 /* Modals */
-ion-modal {
+/* ion-modal {
   --background: #ffffff !important;
   --ion-background-color: #ffffff !important;
   --color: #000000 !important;
+  
+} */
+
+ion-modal {
+  --background: #ffffff !important;
+  --ion-background-color: #ffffff !important;
+  /* --color: #000000 !important; */
+
+  /* 🔥 content spacing */
+  /* --padding-top: 28px; */
+ 
 }
+
+
+ion-modal ion-header {
+  /* padding-top: 30px; */
+   --background:#2563eb !important;
+
+}
+
+ion-modal ion-header ion-toolbar {
+  /* --background: #2563eb;  */
+  --background: linear-gradient(180deg, #00c8ff 0%, #0073ff 100%);
+  --color: #ffffff;     /* text color */
+   --padding-top: 30px;
+    --padding-bottom: 12px;
+}
+
+ion-modal ion-header ion-title {
+  --color: #ffffff;
+  font-weight:900;
+}
+
+
+ion-modal ion-header ion-button,
+ion-modal ion-header ion-icon {
+  --color: #ffffff !important;
+  font-weight:900;
+}
+
+
+
+
+ion-modal ion-content {
+  --padding-top: 28px;
+  --padding-bottom: 12px;
+}
+
+
 
 /* Modal wrapper (Android) */
 .modal-wrapper {
@@ -106,6 +154,7 @@ ion-alert {
 }
 
 
+
 /* Change text + placeholder color for IonInput (especially type="date") */
 .date-input {
   --color: red !important;               /* Text color */
@@ -127,7 +176,8 @@ ion-alert {
  ion-tab-bar {
   /* --background: #d0e7ff; blue */
   --background: linear-gradient(180deg, #00c8ff 0%, #0073ff 100%);
-  --color: white;       
+  --color: white;   
+      --color-selected: yellow;
   /* --color-selected: #ffffff; */
 } 
 

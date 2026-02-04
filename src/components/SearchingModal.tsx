@@ -14,6 +14,8 @@ import { ref, push, onValue, off, update } from "firebase/database";
 import { rtdb } from "../firebaseConfig";
 import { IonAlert } from "@ionic/react";
 import { useApp } from "../context/AppContext";
+import { auth } from "../firebaseConfig";
+
 
 
 const Container = styled.div`
@@ -46,30 +48,64 @@ const SearchingModal: React.FC<Props> = ({
   const [status, setStatus] = useState("SEARCHING");
   const [orderId, setOrderId] = useState<string | null>(null);
   const [showCancelAlert, setShowCancelAlert] = useState(false);
-const { setActiveOrderId, setTrackingOpen } = useApp();
+const { setTrackingOpen } = useApp();
 
+const user = auth.currentUser;
 
 
 
   const hasCreatedRef = useRef(false);
 
-  // 1️⃣ CREATE ORDER
-  useEffect(() => {
-    if (hasCreatedRef.current) return;
+//   // 1️⃣ CREATE ORDER
+//   useEffect(() => {
+//     if (hasCreatedRef.current) return;
 
-    const ordersRef = ref(rtdb, "orders");
+//     const ordersRef = ref(rtdb, "orders");
 
-    const newOrderRef = push(ordersRef, {
-      service,
-      address,
-      latLng,
-      status: "SEARCHING",
-      createdAt: Date.now()
-    });
+//     const newOrderRef = push(ordersRef, {
+//       service,
+//       address,
+//       latLng,
+//       status: "SEARCHING",
+//       createdAt: Date.now()
+//     });
 
-    hasCreatedRef.current = true;
-    setOrderId(newOrderRef.key);
-  }, []);
+//     hasCreatedRef.current = true;
+//     setOrderId(newOrderRef.key);
+//   }, []);
+
+
+useEffect(() => {
+  if (hasCreatedRef.current) return;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    console.error("No authenticated user found");
+    return;
+  }
+
+  const ordersRef = ref(rtdb, "orders");
+
+  const newOrderRef = push(ordersRef, {
+    service,
+    address,
+    latLng,
+
+    // 🔐 USER INFO
+    userId: user.uid,
+    userEmail: user.email || null,
+
+    status: "SEARCHING",
+    createdAt: Date.now()
+  });
+
+  hasCreatedRef.current = true;
+  setOrderId(newOrderRef.key);
+}, []);
+
+
+
 
   // 2️⃣ LISTEN FOR REALTIME UPDATES
   useEffect(() => {
@@ -84,7 +120,6 @@ const { setActiveOrderId, setTrackingOpen } = useApp();
       setStatus(data.status);
 
       if (data.status === "ACCEPTED") {
-  setActiveOrderId(orderId);     // store globally
   setTrackingOpen(true);         // open tracking modal
   onClose();                     // close searching modal
 }
