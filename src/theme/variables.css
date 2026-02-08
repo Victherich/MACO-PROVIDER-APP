@@ -86,8 +86,8 @@ ion-modal ion-header ion-icon {
 
 
 ion-modal ion-content {
-  --padding-top: 28px;
-  --padding-bottom: 12px;
+  /* --padding-top: 28px; */
+  /* --padding-bottom: 12px; */
 }
 
 

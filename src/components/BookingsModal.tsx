@@ -7,9 +7,10 @@ import {
   IonContent,
   IonItem,
   IonLabel,
-  IonText,IonButton
+  IonText,
+  IonButton
 } from "@ionic/react";
-import { auth, db } from "../firebaseConfig";
+import { auth } from "../firebaseConfig";
 import { getDatabase, ref, onValue } from "firebase/database";
 
 import BookingDetailsModal from "./BookingDetailsModal";
@@ -25,72 +26,70 @@ const BookingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
 
-
   useEffect(() => {
-  if (!user || !isOpen) return;
+    if (!user || !isOpen) return;
 
-  const rtdb = getDatabase();
-  const ordersRef = ref(rtdb, "orders");
+    const rtdb = getDatabase();
+    const ordersRef = ref(rtdb, "orders");
 
-  const unsubscribe = onValue(ordersRef, snapshot => {
-    const data = snapshot.val();
+    const unsubscribe = onValue(ordersRef, (snapshot) => {
+      const data = snapshot.val();
 
-    if (!data) {
-      setBookings([]);
-      return;
-    }
+      if (!data) {
+        setBookings([]);
+        return;
+      }
 
-    const list = Object.entries(data)
-      .map(([id, value]: any) => ({
-        id,
-        ...value
-      }))
-      .filter(order => order.userId === user.uid)
-      .sort((a, b) => b.createdAt - a.createdAt); // latest first
+      const list = Object.entries<any>(data)
+        .map(([id, value]) => ({
+          id,
+          ...value
+        }))
+        // ✅ SHOW BOOKINGS WHERE CURRENT USER IS THE PROVIDER
+        .filter((order) => order.providerId === user.uid)
+        .sort((a, b) => b.createdAt - a.createdAt); // latest first
 
-    setBookings(list);
-  });
+      setBookings(list);
+    });
 
-  return () => unsubscribe();
-}, [user, isOpen]);
-
-
+    return () => unsubscribe();
+  }, [user, isOpen]);
 
   return (
     <>
-   <IonModal isOpen={isOpen} onDidDismiss={onClose}>
-  <IonHeader>
-    <IonToolbar>
-      <IonTitle>My Bookings</IonTitle>
+      <IonModal isOpen={isOpen} onDidDismiss={onClose}>
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>My Provider Bookings</IonTitle>
 
-      <IonButton
-        slot="end"
-        fill="clear"
-        onClick={onClose}
-      >
-        Close
-      </IonButton>
-    </IonToolbar>
-  </IonHeader>
+            <IonButton slot="end" fill="clear" onClick={onClose}>
+              Close
+            </IonButton>
+          </IonToolbar>
+        </IonHeader>
 
-
-        <IonContent style={{paddingTop:"100px"}}>
+        <IonContent style={{ paddingTop: "100px" }}>
           {bookings.length === 0 && (
-            <IonText className="ion-padding">No bookings found</IonText>
+            <IonText className="ion-padding">
+              No provider bookings found
+            </IonText>
           )}
 
-          {bookings.map(b => (
-            <IonItem
-              key={b.id}
-              button
-              onClick={() => setSelected(b)}
-            >
+          {bookings.map((b) => (
+            <IonItem key={b.id} button onClick={() => setSelected(b)}>
               <IonLabel>
-               <h2 style={{color:"blue", fontWeight:"bold"}}>{b.service.title}</h2>
-<p>{b.service.desc}</p>
-<p>Status: {b.status}</p>
-<p>{b.price}</p>
-
+                <h2 style={{ color: "blue", fontWeight: "bold" }}>
+                  {b.service.title}
+                </h2>
+                <p>{b.service.desc}</p>
+                <p>Status: {b.status}</p>
+                <p>Payment: {b.payment_status}</p>
+                <p>
+                  Booked:{" "}
+                  {b.createdAt
+                    ? new Date(b.createdAt).toLocaleString()
+                    : "—"}
+                </p>
               </IonLabel>
             </IonItem>
           ))}

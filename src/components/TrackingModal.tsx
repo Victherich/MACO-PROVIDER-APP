@@ -339,35 +339,129 @@ import { ref, onValue, off, update } from "firebase/database";
 import { rtdb, auth } from "../firebaseConfig";
 import { useApp } from "../context/AppContext";
 import ProviderTrackingMap from "./ProviderTrackingMap";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+import ClientDetailsModal from "./ClientDetailsModal";
+
+
+
+
+
+
+
+
 
 const StatusBar = styled.div`
   position: absolute;
   bottom: 50px;
   width: 100%;
   background: #ffffff;
-  padding: 16px;
+  padding: 5px;
   border-top-left-radius: 18px;
   border-top-right-radius: 18px;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
 `;
 
-const StatusText = styled.h3`
+const StatusText = styled.h6`
   margin: 0;
   text-align: center;
   color: #2b2b2b;
+
 `;
+
+
+
+// 📏 Distance helper
+const getDistanceInKm = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) ** 2;
+
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+};
+
+
+
+
+
+
 
 const TrackingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { setTrackingOpen } = useApp();
   const user = auth.currentUser;
 
+
+  // ✅ REAL provider location (from Firestore)
+  const [providerLocation, setProviderLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  
+    const provider = auth.currentUser;
+  
+  
+
   const [status, setStatus] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState("");
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
   const [activeOrder, setActiveOrder] = useState<any | null>(null);
 
   // 🔹 CONFIRMATION ALERT STATES
   const [showStartConfirm, setShowStartConfirm] = useState(false);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+
+   // 🔹 NEW: flag to track if order is paid
+  const [isPaid, setIsPaid] = useState(false);
+ const [distance, setDistance] = useState<string>(""); 
+const [showClientModal, setShowClientModal] = useState(false);
+
+
+
+
+
+
+
+// 🔹 STEP 3: Listen to provider location in Firestore
+useEffect(() => {
+  if (!provider) return;
+
+  const userRef = doc(db, "users", provider.uid);
+
+  const unsub = onSnapshot(userRef, (snap) => {
+    const data = snap.data();
+
+    if (data?.location) {
+      setProviderLocation({
+        lat: data.location.lat,
+        lng: data.location.lng,
+      });
+
+      console.log("Provider live location:", data.location);
+    }
+  });
+
+  return () => unsub();
+}, [provider]);
+
+
+
+
+
+
+
+
+
 
   // 🔹 CLEAN REAL-TIME LISTENER (kept exactly as your working version)
   useEffect(() => {
@@ -380,6 +474,7 @@ const TrackingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       if (!orders) {
         setActiveOrder(null);
         setStatus("");
+        setPaymentStatus('');
         setActiveOrderId(null);
         return;
       }
@@ -390,13 +485,13 @@ const TrackingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           order.providerId === user.uid &&
           (order.status === "ACCEPTED" ||
             order.status === "IN_PROGRESS" ||
-            order.status === "COMPLETED" ||
-            order.status === "PAID")
+            order.status === "COMPLETED") && order.payment_status==="NOT_PAID"
       );
 
       if (!activeEntry) {
         setActiveOrder(null);
         setStatus("");
+        setPaymentStatus('');
         setActiveOrderId(null);
         return;
       }
@@ -413,12 +508,20 @@ const TrackingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         setActiveOrder(data);
         setStatus(data.status);
+        setPaymentStatus(data.payment_status);
+
+  
+
+         // ✅ NEW: When paid, set flag but DO NOT close automatically
+        if (data.payment_status === "PAID") {
+          setIsPaid(true);
+        }
 
         // Close when paid
-        if (data.status === "PAID") {
-          setTrackingOpen(false);
-          onClose();
-        }
+        // if (data.payment_status === "PAID") {
+        //   setTrackingOpen(false);
+        //   onClose();
+        // }
       });
 
       return () => off(orderRef);
@@ -444,27 +547,74 @@ const TrackingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     });
   };
 
+
+
+
+useEffect(() => {
+  if (!providerLocation || !activeOrder?.latLng) return;
+
+  const distanceKm = getDistanceInKm(
+    providerLocation.lat,
+    providerLocation.lng,
+    activeOrder.latLng.lat,
+    activeOrder.latLng.lng
+  );
+
+  setDistance(distanceKm.toFixed(2));
+}, [providerLocation, activeOrder]);
+
+
+
+
+
   return (
     <>
       <IonHeader>
         <IonToolbar>
           <IonTitle>Tracking</IonTitle>
+          <IonButton slot="end" fill="clear" onClick={onClose}>
+                    Close
+                  </IonButton>
         </IonToolbar>
       </IonHeader>
 
       <IonContent fullscreen>
         <ProviderTrackingMap
           customerLocation={activeOrder?.latLng}
-          providerLocation={activeOrder?.providerLocation}
+          providerLocation={providerLocation}
           onMapClick={(loc) => console.log("Map clicked:", loc)}
         />
 
         <StatusBar>
+
+      {activeOrder && (
+            <StatusText style={{ textAlign: "center", color: "#666" }}>
+              {activeOrder.service.title} • {activeOrder.service.price}
+            </StatusText>
+          )}     
           <StatusText>
             {status === "ACCEPTED" && "On the way 🚗"}
             {status === "IN_PROGRESS" && "Washing in progress 🧼"}
-            {status === "COMPLETED" && "Waiting for payment ✅"}
-          </StatusText>
+            {status === "COMPLETED" && paymentStatus==="NOT_PAID" && "Waiting for payment ✅"}
+             {isPaid && "Payment received 🎉"}
+             <br/>{distance && <>{distance} km away</>}
+</StatusText>
+
+
+
+
+             <IonButton
+  expand="block"
+  fill="outline"
+  color="primary"
+  onClick={() => setShowClientModal(true)}
+  // style={{padding:"20px"}}
+>
+  View Client Details
+</IonButton>
+
+
+          
 
           {status === "ACCEPTED" && (
             <IonButton expand="block" onClick={() => setShowStartConfirm(true)}>
@@ -481,6 +631,22 @@ const TrackingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               Mark Completed
             </IonButton>
           )}
+
+   {isPaid && (
+            <IonButton
+              expand="block"
+              color="medium"
+              onClick={() => {
+                setTrackingOpen(false);
+                onClose();
+              }}
+            >
+              Close Tracking
+            </IonButton>)}
+
+       
+
+
         </StatusBar>
 
         {/* ✅ CONFIRM START SERVICE ALERT */}
@@ -526,6 +692,13 @@ const TrackingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             }
           ]}
         />
+
+        <ClientDetailsModal
+  isOpen={showClientModal}
+  onClose={() => setShowClientModal(false)}
+  clientId={activeOrder?.userId}
+/>
+
       </IonContent>
     </>
   );

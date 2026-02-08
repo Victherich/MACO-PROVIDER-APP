@@ -7,6 +7,9 @@ interface AppContextType {
   isTrackingOpen: boolean;
   setTrackingOpen: (open: boolean) => void;
 
+   hasActiveBooking: boolean;
+ setHasActiveBooking: (open: boolean) => void;
+
   // 🔮 future global state goes here
   // userLocation?: ...
   // activeModal?: ...
@@ -20,6 +23,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 
   const [isTrackingOpen, setTrackingOpen] = useState(false);
+  const [hasActiveBooking, setHasActiveBooking] = useState(false);
 
   const setActiveOrderId = (id: string | null) => {
     setActiveOrderIdState(id);
@@ -33,7 +37,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeOrderId,
         setActiveOrderId,
         isTrackingOpen,
-        setTrackingOpen
+        setTrackingOpen, hasActiveBooking, setHasActiveBooking
       }}
     >
       {children}

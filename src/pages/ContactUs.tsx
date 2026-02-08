@@ -52,7 +52,7 @@ const FormTitle = styled.h3`
   font-size: 20px;
   font-weight: 600;
   text-align: center;
-  color: rgb(134, 134, 238);
+  color: #0073ff;
   margin-bottom: 20px;
 `;
 
@@ -76,7 +76,7 @@ const Textarea = styled(IonTextarea)`
 `;
 
 const Button = styled(IonButton)`
-  --background: rgb(134, 134, 238);
+  // --background: rgb(134, 134, 238);
   width: 100%;
   margin-top: 10px;
 `;

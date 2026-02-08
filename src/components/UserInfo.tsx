@@ -8,6 +8,9 @@ import { db } from "../firebaseConfig";
 import ProfileModal from "./ProfileModal";
 import { useCallback } from "react";
 import BookingsModal from "./BookingsModal";
+import { Geolocation } from "@capacitor/geolocation";
+import { updateDoc } from "firebase/firestore";
+
 
 
 
@@ -113,6 +116,54 @@ const loadProfile = useCallback(async () => {
 
 
 
+
+
+
+React.useEffect(() => {
+  if (!user) return;
+
+  const watchId = Geolocation.watchPosition(
+    { enableHighAccuracy: true },
+    async (position, err) => {
+      if (err || !position) {
+        console.error("Location watch error:", err);
+        return;
+      }
+
+      const coords = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+
+      try {
+        const userRef = doc(db, "users", user.uid);
+
+        await updateDoc(userRef, {
+          location: {
+            lat: coords.lat,
+            lng: coords.lng,
+            updatedAt: Date.now(),
+          },
+        });
+
+        console.log("Location updated:", coords);
+      } catch (error) {
+        console.error("Failed to update location:", error);
+      }
+    }
+  );
+
+  return () => {
+    Geolocation.clearWatch({ id: watchId });
+  };
+}, [user]);
+
+
+
+
+
+
+
 React.useEffect(() => {
   loadProfile();
 }, [loadProfile]);
@@ -140,10 +191,7 @@ React.useEffect(() => {
 
       </UserRow>
 
-      {/* <BalanceBox>
-        <BalanceLabel>Available Balance</BalanceLabel>
-        <BalanceAmount>AED 1,250</BalanceAmount>
-      </BalanceBox> */}
+
 
       <QuickActions>
       <ActionBtn

@@ -45,9 +45,9 @@ const DashboardHome: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<any>(null);
 
-  const { isTrackingOpen, setTrackingOpen } = useApp();
+  const { isTrackingOpen, setTrackingOpen, hasActiveBooking, setHasActiveBooking } = useApp();
   const [showNoBookingAlert, setShowNoBookingAlert] = useState(false);
-  const [hasActiveBooking, setHasActiveBooking] = useState(false);
+  // const [hasActiveBooking, setHasActiveBooking] = useState(false);
 
   const { user, loading } = useAuth();
 
@@ -59,7 +59,10 @@ const DashboardHome: React.FC = () => {
   }, [user, loading]);
 
   // 🔥 PROVIDER ACTIVE ORDER LISTENER (UPDATED)
-  useEffect(() => {
+ 
+
+
+    const handleActiveBooking = ()=>{
     if (!user) return;
 
     const ordersRef = ref(rtdb, "orders");
@@ -69,6 +72,7 @@ const DashboardHome: React.FC = () => {
 
       if (!orders) {
         setHasActiveBooking(false);
+        setTrackingOpen(false);
         return;
       }
 
@@ -78,11 +82,12 @@ const DashboardHome: React.FC = () => {
           order.providerId === user.uid &&
           (order.status === "ACCEPTED" ||
             order.status === "IN_PROGRESS" ||
-            order.status === "COMPLETED")
+            order.status === "COMPLETED")&&order.payment_status === "NOT_PAID"
       );
 
       if (!active) {
         setHasActiveBooking(false);
+        setTrackingOpen(false);
         return;
       }
 
@@ -94,6 +99,12 @@ const DashboardHome: React.FC = () => {
     });
 
     return () => off(ordersRef);
+  }
+
+
+
+ useEffect(() => {
+handleActiveBooking();
   }, [user]);
 
   return (
@@ -116,6 +127,7 @@ const DashboardHome: React.FC = () => {
           <IonButton
             expand="block"
             onClick={() => {
+               handleActiveBooking();
               if (hasActiveBooking) {
                 setTrackingOpen(true);
               } else {
@@ -129,12 +141,14 @@ const DashboardHome: React.FC = () => {
           <Title>AVAILABLE ORDERS</Title>
           <Subtitle>Click any ORDER to accept</Subtitle>
 
-          <AvailableOrders />
+          <AvailableOrders/>
 
           {/* ✅ USE PROVIDER TRACKING MODAL */}
-          <IonModal isOpen={isTrackingOpen} canDismiss={false}>
+          <IonModal isOpen={isTrackingOpen}>
             <TrackingModal
               onClose={() => setTrackingOpen(false)}
+              
+
             />
           </IonModal>
 

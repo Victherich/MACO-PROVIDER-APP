@@ -24,6 +24,9 @@ const ProviderTrackingMap: React.FC<Props> = ({
   const providerMarker = useRef<google.maps.Marker | null>(null);
   const directionsRenderer = useRef<google.maps.DirectionsRenderer | null>(null);
 
+
+  console.log(providerLocation)
+
   // INIT MAP + CLICK HANDLER
   useEffect(() => {
     if (!mapRef.current) return;
