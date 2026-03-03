@@ -60,9 +60,18 @@ import Signup from "./pages/Signup";
 import UserAccount from "./pages/UserAccount";
 import { AppProvider } from "./context/AppContext";
 
+import { saveFcmToken } from "./pushNotifications";
+import { onMessage } from "firebase/messaging";
+import { messaging } from "./firebaseConfig";
+import { App as CapApp } from "@capacitor/app";
+import { useIonAlert } from "@ionic/react";
+
+
 setupIonicReact();
 
 const App: React.FC = () => {
+  const [presentAlert] = useIonAlert();
+
   // ----------------------------
   // FORCE UPDATE IF AVAILABLE
   // ----------------------------
@@ -82,6 +91,63 @@ const App: React.FC = () => {
 
     checkForUpdate();
   }, []);
+
+
+  useEffect(() => {
+  saveFcmToken();
+}, []);
+
+
+useEffect(() => {
+  onMessage(messaging, (payload) => {
+    console.log("Foreground notification:", payload);
+  });
+}, []);
+
+
+
+
+
+useEffect(() => {
+  let backHandler: any;
+
+  const setupBackButton = async () => {
+    backHandler = await CapApp.addListener("backButton", () => {
+      const path = window.location.pathname;
+
+      if (path === "/home") {
+        presentAlert({
+          header: "Exit App",
+          message: "Are you sure you want to exit?",
+          buttons: [
+            {
+              text: "No",
+              role: "cancel",
+            },
+            {
+              text: "Yes",
+              handler: () => {
+                CapApp.exitApp();
+              },
+            },
+          ],
+        });
+      } else {
+        window.history.back();
+      }
+    });
+  };
+
+  setupBackButton();
+
+  return () => {
+    if (backHandler) {
+      backHandler.remove();
+    }
+  };
+}, [presentAlert]);
+
+
 
   return (
 <AppProvider>

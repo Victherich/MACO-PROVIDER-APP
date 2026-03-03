@@ -55,7 +55,7 @@ const BookingDetailsModal: React.FC<Props> = ({ booking, onClose }) => {
           <IonTitle>Booking Details (Provider)</IonTitle>
 
           <IonButton slot="end" fill="clear" onClick={onClose}>
-            Close
+            Back
           </IonButton>
         </IonToolbar>
       </IonHeader>

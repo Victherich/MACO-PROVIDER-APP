@@ -40,6 +40,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 import { getDatabase } from "firebase/database";
+import { getMessaging } from "firebase/messaging"; 
 
 /* ✅ Your Firebase configuration */
 const firebaseConfig = {
@@ -70,6 +71,9 @@ export const db = getFirestore(app);
 
 // ✅ Export Realtime Database
 export const rtdb = getDatabase(app);
+
+// ✅ VERY IMPORTANT FOR NOTIFICATIONS
+export const messaging = getMessaging(app);
 
 export { analytics };
 export default app;

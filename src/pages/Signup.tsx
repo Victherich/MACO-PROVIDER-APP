@@ -92,7 +92,7 @@ if (password !== confirmPassword) {
         name,
         phone,
         email,
-        role: "CUSTOMER",
+        role: "provider",
         createdAt: serverTimestamp(),
       });
 

@@ -119,9 +119,58 @@ const loadProfile = useCallback(async () => {
 
 
 
+// React.useEffect(() => {
+//   if (!user) return;
+
+//   const watchId = Geolocation.watchPosition(
+//     { enableHighAccuracy: true },
+//     async (position, err) => {
+//       if (err || !position) {
+//         console.error("Location watch error:", err);
+//         return;
+//       }
+
+//       const coords = {
+//         lat: position.coords.latitude,
+//         lng: position.coords.longitude,
+//       };
+
+//       try {
+//         const userRef = doc(db, "users", user.uid);
+
+//         await updateDoc(userRef, {
+//           location: {
+//             lat: coords.lat,
+//             lng: coords.lng,
+//             updatedAt: Date.now(),
+//           },
+//         });
+
+//         console.log("Location updated:", coords);
+//       } catch (error) {
+//         console.error("Failed to update location:", error);
+//       }
+//     }
+//   );
+
+//   return () => {
+//     Geolocation.clearWatch({ id: watchId });
+//   };
+// }, [user]);
+
+
+
+
+// 
+
+
+
+
+
 React.useEffect(() => {
   if (!user) return;
 
+  // watchPosition can return a string (CallbackID)
   const watchId = Geolocation.watchPosition(
     { enableHighAccuracy: true },
     async (position, err) => {
@@ -153,14 +202,13 @@ React.useEffect(() => {
     }
   );
 
+  // Cast explicitly to string to satisfy TypeScript
+  const callbackId = watchId as unknown as string;
+
   return () => {
-    Geolocation.clearWatch({ id: watchId });
+    Geolocation.clearWatch({ id: callbackId });
   };
 }, [user]);
-
-
-
-
 
 
 

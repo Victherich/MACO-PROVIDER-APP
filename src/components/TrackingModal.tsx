@@ -426,6 +426,7 @@ const TrackingModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
  const [distance, setDistance] = useState<string>(""); 
 const [showClientModal, setShowClientModal] = useState(false);
 
+const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
 
 
@@ -565,6 +566,18 @@ useEffect(() => {
 
 
 
+const confirmCancelOrder = async () => {
+  if (!activeOrderId) return;
+
+  await update(ref(rtdb, `orders/${activeOrderId}`), {
+    status: "CANCELLED"
+  });
+
+  // Close tracking after cancel
+  setTrackingOpen(false);
+  onClose();
+};
+
 
 
   return (
@@ -573,7 +586,7 @@ useEffect(() => {
         <IonToolbar>
           <IonTitle>Tracking</IonTitle>
           <IonButton slot="end" fill="clear" onClick={onClose}>
-                    Close
+                    Back
                   </IonButton>
         </IonToolbar>
       </IonHeader>
@@ -598,6 +611,19 @@ useEffect(() => {
             {status === "COMPLETED" && paymentStatus==="NOT_PAID" && "Waiting for payment ✅"}
              {isPaid && "Payment received 🎉"}
              <br/>{distance && <>{distance} km away</>}
+            {status==="ACCEPTED" && <p
+  style={{
+    textAlign: "center",
+    color: "red",
+    marginTop: 2,
+    textDecoration: "underline",
+    cursor: "pointer"
+  }}
+  onClick={() => setShowCancelConfirm(true)}
+>
+  Cancel order
+</p>}
+
 </StatusText>
 
 
@@ -698,6 +724,30 @@ useEffect(() => {
   onClose={() => setShowClientModal(false)}
   clientId={activeOrder?.userId}
 />
+
+
+
+<IonAlert
+  isOpen={showCancelConfirm}
+  onDidDismiss={() => setShowCancelConfirm(false)}
+  header="Cancel Order"
+  message="Are you sure you want to cancel this order?"
+  buttons={[
+    {
+      text: "No",
+      role: "cancel",
+      handler: () => setShowCancelConfirm(false)
+    },
+    {
+      text: "Yes, Cancel",
+      handler: () => {
+        setShowCancelConfirm(false);
+        confirmCancelOrder();
+      }
+    }
+  ]}
+/>
+
 
       </IonContent>
     </>
