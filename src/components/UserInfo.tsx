@@ -10,7 +10,7 @@ import { useCallback } from "react";
 import BookingsModal from "./BookingsModal";
 import { Geolocation } from "@capacitor/geolocation";
 import { updateDoc } from "firebase/firestore";
-
+import { registerPush } from "../pushNotifications";
 
 
 
@@ -215,6 +215,14 @@ React.useEffect(() => {
 React.useEffect(() => {
   loadProfile();
 }, [loadProfile]);
+
+
+React.useEffect(() => {
+  if(user){
+    registerPush(user.uid);
+  }
+}, [user]);
+
 
 
   return (

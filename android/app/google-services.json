@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1042442426170",
+    "firebase_url": "https://matthew-car-wash-and-cleaning-default-rtdb.firebaseio.com",
+    "project_id": "matthew-car-wash-and-cleaning",
+    "storage_bucket": "matthew-car-wash-and-cleaning.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1042442426170:android:534057c45279ef27b7a203",
+        "android_client_info": {
+          "package_name": "com.maco.experts"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDU6tcMN0_Mc_Qr_PZE6pjMHGCIj1a_jYQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

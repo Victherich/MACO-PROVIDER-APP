@@ -6,6 +6,9 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false, // recommended
   plugins: {
+     PushNotifications: {
+    presentationOptions: ["badge", "sound", "alert"]
+  },
     SplashScreen: {
       launchShowDuration: 3000
     }

@@ -60,7 +60,7 @@ import Signup from "./pages/Signup";
 import UserAccount from "./pages/UserAccount";
 import { AppProvider } from "./context/AppContext";
 
-import { saveFcmToken } from "./pushNotifications";
+// import { saveFcmToken } from "./pushNotifications";
 import { onMessage } from "firebase/messaging";
 import { messaging } from "./firebaseConfig";
 import { App as CapApp } from "@capacitor/app";
@@ -93,16 +93,16 @@ const App: React.FC = () => {
   }, []);
 
 
-  useEffect(() => {
-  saveFcmToken();
-}, []);
+//   useEffect(() => {
+//   saveFcmToken();
+// }, []);
 
 
-useEffect(() => {
-  onMessage(messaging, (payload) => {
-    console.log("Foreground notification:", payload);
-  });
-}, []);
+// useEffect(() => {
+//   onMessage(messaging, (payload) => {
+//     console.log("Foreground notification:", payload);
+//   });
+// }, []);
 
 
 
