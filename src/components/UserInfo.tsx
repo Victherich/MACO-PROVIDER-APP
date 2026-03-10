@@ -117,11 +117,10 @@ const loadProfile = useCallback(async () => {
 
 
 
-
-
 // React.useEffect(() => {
 //   if (!user) return;
 
+//   // watchPosition can return a string (CallbackID)
 //   const watchId = Geolocation.watchPosition(
 //     { enableHighAccuracy: true },
 //     async (position, err) => {
@@ -153,62 +152,13 @@ const loadProfile = useCallback(async () => {
 //     }
 //   );
 
+//   // Cast explicitly to string to satisfy TypeScript
+//   const callbackId = watchId as unknown as string;
+
 //   return () => {
-//     Geolocation.clearWatch({ id: watchId });
+//     Geolocation.clearWatch({ id: callbackId });
 //   };
 // }, [user]);
-
-
-
-
-// 
-
-
-
-
-
-React.useEffect(() => {
-  if (!user) return;
-
-  // watchPosition can return a string (CallbackID)
-  const watchId = Geolocation.watchPosition(
-    { enableHighAccuracy: true },
-    async (position, err) => {
-      if (err || !position) {
-        console.error("Location watch error:", err);
-        return;
-      }
-
-      const coords = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      };
-
-      try {
-        const userRef = doc(db, "users", user.uid);
-
-        await updateDoc(userRef, {
-          location: {
-            lat: coords.lat,
-            lng: coords.lng,
-            updatedAt: Date.now(),
-          },
-        });
-
-        console.log("Location updated:", coords);
-      } catch (error) {
-        console.error("Failed to update location:", error);
-      }
-    }
-  );
-
-  // Cast explicitly to string to satisfy TypeScript
-  const callbackId = watchId as unknown as string;
-
-  return () => {
-    Geolocation.clearWatch({ id: callbackId });
-  };
-}, [user]);
 
 
 
@@ -217,10 +167,81 @@ React.useEffect(() => {
 }, [loadProfile]);
 
 
+// React.useEffect(() => {
+//   if(user){
+//     registerPush(user.uid);
+//   }
+// }, [user]);
+
+
+
+
 React.useEffect(() => {
-  if(user){
-    registerPush(user.uid);
-  }
+  if (!user) return;
+
+  const initPermissions = async () => {
+
+    /* ---------------- LOCATION PERMISSION ---------------- */
+
+    const locPerm = await Geolocation.checkPermissions();
+
+    let permission = locPerm;
+
+    if (locPerm.location === "prompt") {
+      permission = await Geolocation.requestPermissions();
+    }
+
+    if (permission.location === "granted") {
+
+      const watchId = await Geolocation.watchPosition(
+        { enableHighAccuracy: true },
+        async (position, err) => {
+
+          if (err || !position) {
+            console.error("Location watch error:", err);
+            return;
+          }
+
+          const coords = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+
+          try {
+
+            const userRef = doc(db, "users", user.uid);
+
+            await updateDoc(userRef, {
+              location: {
+                lat: coords.lat,
+                lng: coords.lng,
+                updatedAt: Date.now()
+              }
+            });
+
+            console.log("Location updated:", coords);
+
+          } catch (error) {
+            console.error("Failed to update location:", error);
+          }
+        }
+      );
+
+    } else {
+      console.log("Location permission denied");
+    }
+
+    /* ---------------- PUSH PERMISSION ---------------- */
+
+    // wait a little so Android does not clash dialogs
+    setTimeout(() => {
+      registerPush(user.uid);
+    }, 800);
+
+  };
+
+  initPermissions();
+
 }, [user]);
 
 
