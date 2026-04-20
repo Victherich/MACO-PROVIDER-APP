@@ -257,12 +257,25 @@ React.useEffect(() => {
 
         </div>
 
-      <IonAvatar>
+      {/* <IonAvatar>
   <img
     alt="user avatar"
     src={`https://ui-avatars.com/api/?name=${
       profile?.name || "User"
     }&background=fff&color=000`}
+  />
+</IonAvatar> */}
+
+    <IonAvatar>
+  <img
+    alt="user avatar"
+    src={
+      profile?.photoURL ||
+      user?.photoURL ||
+      `https://ui-avatars.com/api/?name=${
+        profile?.name || "User"
+      }&background=00c8ff&color=fff`
+    }
   />
 </IonAvatar>
 
